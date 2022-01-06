@@ -4,7 +4,7 @@ ipsec-vpn-client is a VPN client that can help easy setup IPSec VPN client in Do
 
 This image is inspired from [configure Linux VPN client using the command line](https://github.com/hwdsl2/setup-ipsec-vpn/blob/master/docs/clients.md#configure-linux-vpn-clients-using-the-command-line) instructions and is tested with [IPsec VPN Server on Docker](http://github.com/hwdsl2/docker-ipsec-vpn-server).
 
-By using Docker `privileged` and `host` network, the container will update the default route in Linux once start successfully. The router setting will be restored once stop Docker.
+By using Docker `privileged` and `host` network, the container will update the route to desired subnet once start successfully. The router setting will be restored once stop Docker.
 
 ## How to use this Docker image
 
@@ -13,9 +13,10 @@ By using Docker `privileged` and `host` network, the container will update the d
 This Docker image uses the following variables, and can be easily managed via `env` file:
 ```
 VPN_SERVER_IP=your_vpn_server_public_ip
-VPN_PSEC_PSK=your_ipsec_pre_shared_key
+VPN_IPSEC_PSK=your_ipsec_pre_shared_key
 VPN_USER=your_vpn_username
-VPN_PASSWORD=your_vpn_password)
+VPN_PASSWORD=your_vpn_password
+VPN_SUBNET=CIDR_of_target_subnet
 VERBOSE=true|false
 ```
 
@@ -37,8 +38,6 @@ Use `docker stop` command can immediately stop VPN client:
 docker stop vpn-client
 ```
 
-The default VPN routing rules will be removed once stopped, and the temporary Docker container will be removed as well.
-
 ### Troubleshooting
 
 Use the following command to check connection logs during container is running:
@@ -49,12 +48,6 @@ docker logs vpn-client
 Use the following command to check if `ppp0` network interface is created or not:
 ```
 ip a show ppp0
-```
-
-If network route is not fully restored back, use the following command to remove any broken route rule:
-
-```
-route del default dev ppp0
 ```
 
 ### Limitations

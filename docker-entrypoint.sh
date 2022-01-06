@@ -28,6 +28,11 @@ if [ -z "${VPN_PASSWORD}" ]; then
   exit 1
 fi
 
+if [ -z "${VPN_SUBNET}" ]; then
+  echo Need environment variable VPN_SUBNET to configure routes to remote networks 1>&2
+  exit 1
+fi
+
 DEFAULT_GW=$(ip route show 0.0.0.0/0 | awk '/default/ {print $3}')
 
 LOCAL_PORT=$(shuf -i 2048-65000 -n 1)
@@ -104,8 +109,11 @@ function install() {
     sleep 1
   done
   route add ${VPN_SERVER_IP} gw ${DEFAULT_GW}
-  route add default dev ppp0
-  echo Default route is changed from ${DEFAULT_GW} to ppp0
+  VPN_GW=$(ip route show | grep ppp0 | awk '/src/ {print $NF}')
+  ip route add ${VPN_SUBNET} dev ppp0 proto kernel scope link src ${VPN_GW}
+  # route add ${VPN_SUBNET} dev ppp0
+  # route add default dev ppp0
+  # echo Default route is changed from ${DEFAULT_GW} to ppp0
 
   INSTALLED=1
 }
@@ -117,9 +125,11 @@ function uninstall() {
     return
   fi
 
-  route del default dev ppp0
+  # route del default dev ppp0
+  VPN_GW=$(ip route show | grep ppp0 | awk '/src/ {print $NF}')
+  ip route del ${VPN_SUBNET} dev ppp0 proto kernel scope link src ${VPN_GW}
   route del ${VPN_SERVER_IP} gw ${DEFAULT_GW}
-  echo Default route is changed back from ppp0 to ${DEFAULT_GW}
+  # echo Default route is changed back from ppp0 to ${DEFAULT_GW}
   echo "d myvpn" > /var/run/xl2tpd/l2tp-control
   if [ ${VPN_VERBOSE} == 1 ]; then
     ipsec down myvpn

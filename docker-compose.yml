@@ -1,0 +1,7 @@
+version: "3.7"
+services:
+  ipsec-vpn-client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: trofiv/ipsec-vpn-client
